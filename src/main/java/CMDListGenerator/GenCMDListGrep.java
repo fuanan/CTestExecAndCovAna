@@ -6,12 +6,6 @@ import java.util.ArrayList;
 public class GenCMDListGrep implements GenCMDList {
     ArrayList<String> cmdPrefix;
 
-    public GenCMDListGrep(){}
-
-    public GenCMDListGrep(ArrayList<String> prefix){
-        this.cmdPrefix = prefix;
-    }
-
     @Override
     public void initialize(ArrayList<String> cmdList){
         this.cmdPrefix = cmdList;

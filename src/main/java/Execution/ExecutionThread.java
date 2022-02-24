@@ -1,32 +1,34 @@
-import CMDListGenerator.GenCMDList;
-import javafx.util.Pair;
+package Execution;
 
+import CMDListGenerator.GenCMDList;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.concurrent.Callable;
+import java.util.Set;
 
 public class ExecutionThread{
 
     int currMrID;
     String projBasePath;
     ArrayList<String> currFNames;
+    Set<Integer> linesOfInterest;
     GenCMDList generator;
     File programUnderTest;
     ArrayList<String> genGcovCMDList;
     ArrayList<String> analyseCMDList;
 
-    public ExecutionThread(int currMrID, String projBasePath, ArrayList<String> currFNames, GenCMDList generator, File programUnderTest,
+    public ExecutionThread(int currMrID, String projBasePath, ArrayList<String> currFNames, Set<Integer> linesOfInterest, GenCMDList generator, File programUnderTest,
                            ArrayList<String> genGcovCMDList, ArrayList<String> analyseCMDList){
         this.currMrID = currMrID;
         this.projBasePath = projBasePath;
         this.currFNames = currFNames;
+        this.linesOfInterest = linesOfInterest;
         this.generator = generator;
         this.programUnderTest = programUnderTest;
         this.genGcovCMDList = genGcovCMDList;
         this.analyseCMDList = analyseCMDList;
     }
 
-    public Pair<Integer, String[]> call(){
+    public String[] call() throws InterruptedException{
         String[] stmtCovResultsOfMTGs = new String[currFNames.size()];
         String currLine;
         String[] arrs = null;
@@ -40,6 +42,7 @@ public class ExecutionThread{
         TestDataExecutor exec;
         ArrayList<Integer> sourceReturn;
         ArrayList<Integer> followReturn;
+        StringBuilder builder;
         for (int mtgIndex = 0; mtgIndex < currFNames.size(); mtgIndex ++){
             currLine = currFNames.get(mtgIndex);
             arrs = currLine.split("\\|");
@@ -58,8 +61,28 @@ public class ExecutionThread{
             execCMDList = generator.genCMDList(programUnderTest.getAbsolutePath(), execBaseDir, followInFNames);
             exec = new TestDataExecutor(execCMDList, execBaseDir, genGcovCMDList, analyseCMDList, analyseBaseDir);
             followReturn = exec.execute();
-            stmtCovResultsOfMTGs[mtgIndex] = mtgIndex + "|" + sourceReturn.toString() + "|" + followReturn.toString();
+            builder = new StringBuilder();
+            builder.append(mtgIndex);
+            builder.append("|");
+            builder.append("[");
+            for (Integer num: sourceReturn){
+                if (this.linesOfInterest.contains(num)){
+                    builder.append(num);
+                    builder.append(",");
+                }
+            }
+            builder.deleteCharAt(builder.length()-1);
+            builder.append("]|[");
+            for (Integer num: followReturn){
+                if (this.linesOfInterest.contains(num)){
+                    builder.append(num);
+                    builder.append(",");
+                }
+            }
+            builder.deleteCharAt(builder.length()-1);
+            builder.append("]");
+            stmtCovResultsOfMTGs[mtgIndex] = builder.toString();
         }
-        return new Pair<>(currMrID, stmtCovResultsOfMTGs);
+        return stmtCovResultsOfMTGs;
     }
 }

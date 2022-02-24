@@ -1,8 +1,9 @@
-import javafx.util.Pair;
+package Execution;
+
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.concurrent.Callable;
 
 public class TestDataExecutor {
 
@@ -25,55 +26,58 @@ public class TestDataExecutor {
         this.analyseBaseDir = analyseBaseDir;
     }
 
-    public ArrayList<Integer> execute(){
+    public ArrayList<Integer> execute() throws InterruptedException{
         try{
             StringBuilder currExecReturn = new StringBuilder();
-            //execution
-            ProcessBuilder builder = new ProcessBuilder(execCmdList);
-            builder.directory(execBaseDir);
-            //long t1 = System.currentTimeMillis();
-            Process execProcess = builder.start();
+            //execute
+            Process execProcess = new ProcessBuilder(execCmdList).directory(execBaseDir).start();
             InputStream in = execProcess.getInputStream();
             InputStreamReader inr = new InputStreamReader(in);
             int temp;
-            while((temp = inr.read()) != -1){
-                //do nothing
-            }
+            while((temp = inr.read()) != -1){/*do nothing*/}
+            /* The following statement is necessary, since the instrumented program is still running
+            * after the execution results have been printed on the screen.*/
+            execProcess.waitFor();
+            /******************/
+            //currExecReturn.setLength(0);
             inr.close();
             in.close();
             execProcess.destroy();
             // gen gcov file
-            builder = new ProcessBuilder(genGcovCMDList);
-            builder.directory(analyseBaseDir);
-            execProcess = builder.start();
+            execProcess = new ProcessBuilder(genGcovCMDList).directory(analyseBaseDir).start();
             in = execProcess.getInputStream();
             inr = new InputStreamReader(in);
-            while ((temp = inr.read())!= -1){
-                //do nothing
-            }
+            while ((temp = inr.read())!= -1){/*do nothing*/}
+            /*******************/
+            execProcess.waitFor();
+            /*******************/
             inr.close();
             in.close();
             execProcess.destroy();
             // analyse code cov
-            builder = new ProcessBuilder(analyseCMDList);
-            builder.directory(execBaseDir);
-            execProcess = builder.start();
+            execProcess = new ProcessBuilder(analyseCMDList).directory(analyseBaseDir).start();
             in = execProcess.getInputStream();
             inr = new InputStreamReader(in);
             while ((temp = inr.read())!= -1){
-                currExecReturn.append(temp);
+                currExecReturn.append((char)temp);
             }
+            execProcess.waitFor();
             inr.close();
             in.close();
             execProcess.destroy();
-            String[] strs = currExecReturn.toString().split("\n");
+            String r = currExecReturn.toString();
+            String[] strs = r.split("\n");
             ArrayList<Integer> list = new ArrayList<>();
             for (String s : strs) {
-                list.add(Integer.parseInt(s));
+                if (StringUtils.isNumeric(s)){
+                    list.add(Integer.parseInt(s));
+                }else{
+                    System.out.println("Invalid!");
+                }
             }
             return list;
         }catch (IOException e){
-            System.out.println("Error encountered while executing program under tests!!");
+            System.out.println("Error encountered while executing program under test!!");
             return null;
         }
     }
