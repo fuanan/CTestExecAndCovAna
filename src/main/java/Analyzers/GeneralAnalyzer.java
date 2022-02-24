@@ -129,6 +129,10 @@ public class GeneralAnalyzer {
             long t2 = System.currentTimeMillis();
             long t3 = t2-t1;
             System.out.println(threadID + " MRID:" + currMrID + " finished! Time:"+t3);
+            if (threadID == 0 && (i + 1)%20 == 0){
+                System.gc();
+                System.out.println("GC");
+            }
         }
     }
 

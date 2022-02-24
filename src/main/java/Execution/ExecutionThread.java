@@ -71,7 +71,9 @@ public class ExecutionThread{
                     builder.append(",");
                 }
             }
-            builder.deleteCharAt(builder.length()-1);
+            if (builder.charAt(builder.length()-1) == ','){
+                builder.deleteCharAt(builder.length()-1);
+            }
             builder.append("]|[");
             for (Integer num: followReturn){
                 if (this.linesOfInterest.contains(num)){
@@ -79,7 +81,9 @@ public class ExecutionThread{
                     builder.append(",");
                 }
             }
-            builder.deleteCharAt(builder.length()-1);
+            if (builder.charAt(builder.length()-1) == ','){
+                builder.deleteCharAt(builder.length()-1);
+            }
             builder.append("]");
             stmtCovResultsOfMTGs[mtgIndex] = builder.toString();
         }

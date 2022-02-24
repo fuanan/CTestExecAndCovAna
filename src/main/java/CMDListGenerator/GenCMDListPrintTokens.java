@@ -10,10 +10,6 @@ public class GenCMDListPrintTokens implements GenCMDList{
 
     public GenCMDListPrintTokens(){}
 
-    public GenCMDListPrintTokens(ArrayList<String> prefix){
-        this.cmdPrefix = prefix;
-    }
-
     @Override
     public void initialize(ArrayList<String> cmdList){
         this.cmdPrefix = cmdList;
